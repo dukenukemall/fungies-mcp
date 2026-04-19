@@ -36,9 +36,7 @@
     "@hono/node-server": "^1.13.0",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "hono": "^4.6.0",
-    "ky": "^1.7.0",
     "pino": "^9.5.0",
-    "pino-http": "^10.3.0",
     "zod": "^3.23.0",
     "zod-to-json-schema": "^3.23.0"
   },

@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { FungiesClient } from '../fungies/client.js'
 import { registerProducts } from './products.js'
 import { registerOffers } from './offers.js'
+import { registerOfferKeys } from './offers-keys.js'
 import { registerOrders } from './orders.js'
 import { registerSubscriptions } from './subscriptions.js'
 import { registerUsers } from './users.js'
@@ -13,6 +14,7 @@ import { registerWebhooks } from './webhooks.js'
 export function registerTools(server: McpServer, client: FungiesClient) {
   registerProducts(server, client)
   registerOffers(server, client)
+  registerOfferKeys(server, client)
   registerOrders(server, client)
   registerSubscriptions(server, client)
   registerUsers(server, client)

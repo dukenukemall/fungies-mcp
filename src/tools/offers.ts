@@ -2,109 +2,77 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { FungiesClient } from '../fungies/client.js'
 import type { Offer, PagedResult } from '../fungies/types.js'
-import { audit, requireConfirm, safely, toolJson } from './shared.js'
+import { ANN, audit, requireConfirm, safely, toolJson } from './shared.js'
+
+const ID = z.string().describe('Offer UUID')
 
 export function registerOffers(server: McpServer, client: FungiesClient) {
-  server.registerTool(
-    'offers_list',
-    {
-      description: 'List offers (price points) in the store. Filter by product to see all offers for a given product.',
-      inputSchema: {
-        skip: z.number().int().min(0).optional(),
-        take: z.number().int().min(1).max(100).optional(),
-        product: z.string().optional().describe('Product ID to filter by'),
-        termOrId: z.string().optional(),
-      },
+  server.registerTool('offers_list', {
+    title: 'List offers',
+    description:
+      'Use this when the user asks to browse or filter offers (price points). Filter by product to see every offer for a given product.',
+    annotations: ANN.read,
+    inputSchema: {
+      skip: z.number().int().min(0).optional().describe('Pagination offset'),
+      take: z.number().int().min(1).max(100).optional().describe('Page size 1-100'),
+      product: z.string().optional().describe('Filter by product UUID'),
+      termOrId: z.string().optional().describe('Fuzzy search by name or exact offer UUID'),
     },
-    async (args) =>
-      safely<PagedResult<Offer>>(
-        () => client.getList<Offer>('/offers/list', args),
-        (r) => toolJson({ count: r.count, hasMore: r.hasMore, items: r.items }),
-      ),
+  }, async (args) =>
+    safely<PagedResult<Offer>>(
+      () => client.getList<Offer>('/offers/list', args),
+      (r) => toolJson({ count: r.count, hasMore: r.hasMore, items: r.items }),
+    ),
   )
 
-  server.registerTool(
-    'offers_get',
-    {
-      description: 'Fetch a single offer by UUID. Returns price, currency, recurring interval, and key inventory.',
-      inputSchema: { id: z.string() },
-    },
-    async ({ id }) => safely(() => client.get<{ data: Offer }>(`/offers/${id}`), (r) => toolJson(r)),
-  )
+  server.registerTool('offers_get', {
+    title: 'Get offer',
+    description:
+      'Use this when the user wants full details of a single offer (price, currency, recurring interval, key inventory).',
+    annotations: ANN.read,
+    inputSchema: { id: ID },
+  }, async ({ id }) => safely(() => client.get<{ data: Offer }>(`/offers/${id}`), (r) => toolJson(r)))
 
   if (!client.hasSecret) return
 
-  server.registerTool(
-    'offers_create',
-    {
-      description: 'Create an offer for a product. Required: productId, price (in minor units, e.g. 999 for $9.99), currency.',
-      inputSchema: {
-        productId: z.string(),
-        price: z.number().int().min(0),
-        currency: z.string().length(3),
-        name: z.string().optional(),
-        recurringInterval: z.enum(['day', 'week', 'month', 'year']).optional(),
-        recurringIntervalCount: z.number().int().positive().optional(),
-      },
+  server.registerTool('offers_create', {
+    title: 'Create offer',
+    description:
+      'Use this to add a price point to a product. Price is in minor units (999 = $9.99). Price and currency are immutable after creation.',
+    annotations: ANN.create,
+    inputSchema: {
+      productId: z.string().describe('Product UUID to attach this offer to'),
+      price: z.number().int().min(0).describe('Price in minor units (999 = $9.99)'),
+      currency: z.string().length(3).describe('ISO-4217 currency code (USD, EUR, GBP...)'),
+      name: z.string().optional().describe('Optional display name shown on checkout'),
+      recurringInterval: z.enum(['day', 'week', 'month', 'year']).optional().describe('Set for subscription offers'),
+      recurringIntervalCount: z.number().int().positive().optional().describe('e.g. 3 + interval=month = quarterly'),
     },
-    async (args) => {
-      audit(client, 'offers_create', args)
-      return safely(() => client.post<{ data: Offer }>('/offers/create', args), (r) => toolJson(r))
-    },
-  )
+  }, async (args) => {
+    audit(client, 'offers_create', args)
+    return safely(() => client.post<{ data: Offer }>('/offers/create', args), (r) => toolJson(r))
+  })
 
-  server.registerTool(
-    'offers_update',
-    {
-      description: 'Update an offer. Price and currency cannot be changed after creation.',
-      inputSchema: {
-        id: z.string(),
-        name: z.string().optional(),
-      },
-    },
-    async ({ id, ...patch }) => {
-      audit(client, 'offers_update', { id, ...patch })
-      return safely(() => client.patch<{ data: Offer }>(`/offers/${id}/update`, patch), (r) => toolJson(r))
-    },
-  )
+  server.registerTool('offers_update', {
+    title: 'Update offer',
+    description: 'Use this to rename an offer. Price and currency cannot be changed after creation.',
+    annotations: ANN.update,
+    inputSchema: { id: ID, name: z.string().optional().describe('New display name') },
+  }, async ({ id, ...patch }) => {
+    audit(client, 'offers_update', { id, ...patch })
+    return safely(() => client.patch<{ data: Offer }>(`/offers/${id}/update`, patch), (r) => toolJson(r))
+  })
 
-  server.registerTool(
-    'offers_archive',
-    {
-      description: 'Archive an offer (soft delete). Existing subscriptions on this offer continue. Pass confirm: true.',
-      inputSchema: { id: z.string(), confirm: z.boolean().optional() },
-    },
-    async ({ id, confirm }) => {
-      const refuse = requireConfirm(confirm, 'offers_archive')
-      if (refuse) return refuse
-      audit(client, 'offers_archive', { id })
-      return safely(() => client.patch<{ data: Offer }>(`/offers/${id}/archive`, {}), (r) => toolJson(r))
-    },
-  )
-
-  server.registerTool(
-    'offers_keys_add',
-    {
-      description: 'Add license/game keys to an offer inventory. Keys are auto-assigned to customers at purchase.',
-      inputSchema: { offerId: z.string(), keys: z.array(z.string()).min(1) },
-    },
-    async ({ offerId, keys }) => {
-      audit(client, 'offers_keys_add', { offerId, keyCount: keys.length })
-      return safely(() => client.post(`/offers/${offerId}/keys/add`, { keys }), (r) => toolJson(r))
-    },
-  )
-
-  server.registerTool(
-    'offers_keys_remove',
-    {
-      description: 'Remove an unsold key from an offer. Sold keys are preserved. Pass confirm: true.',
-      inputSchema: { offerId: z.string(), keyId: z.string(), confirm: z.boolean().optional() },
-    },
-    async ({ offerId, keyId, confirm }) => {
-      const refuse = requireConfirm(confirm, 'offers_keys_remove')
-      if (refuse) return refuse
-      audit(client, 'offers_keys_remove', { offerId, keyId })
-      return safely(() => client.delete(`/offers/${offerId}/keys/${keyId}/removeUnsold`), (r) => toolJson(r))
-    },
-  )
+  server.registerTool('offers_archive', {
+    title: 'Archive offer',
+    description:
+      'Use this to retire an offer. Soft delete; existing subscriptions continue but new purchases are blocked. Requires confirm: true.',
+    annotations: ANN.destructive,
+    inputSchema: { id: ID, confirm: z.boolean().optional().describe('Must be true — destructive action') },
+  }, async ({ id, confirm }) => {
+    const refuse = requireConfirm(confirm, 'offers_archive')
+    if (refuse) return refuse
+    audit(client, 'offers_archive', { id })
+    return safely(() => client.patch<{ data: Offer }>(`/offers/${id}/archive`, {}), (r) => toolJson(r))
+  })
 }
