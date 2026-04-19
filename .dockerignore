@@ -1,0 +1,15 @@
+node_modules
+dist
+.git
+.github
+.cursor
+.memory
+.wiki
+.railway
+.env
+.env.*
+*.log
+coverage
+README.md
+.gitignore
+.dockerignore

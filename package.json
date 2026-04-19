@@ -1,0 +1,54 @@
+{
+  "name": "@fungies/mcp-server",
+  "version": "0.1.0",
+  "description": "Official Model Context Protocol server for the Fungies Merchant of Record API",
+  "keywords": [
+    "fungies",
+    "mcp",
+    "model-context-protocol",
+    "merchant-of-record",
+    "payments",
+    "cursor",
+    "claude"
+  ],
+  "homepage": "https://github.com/dukenukemall/fungies-mcp",
+  "bugs": "https://github.com/dukenukemall/fungies-mcp/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dukenukemall/fungies-mcp.git"
+  },
+  "license": "MIT",
+  "author": "Fungies",
+  "type": "module",
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "hono": "^4.6.0",
+    "ky": "^1.7.0",
+    "pino": "^9.5.0",
+    "pino-http": "^10.3.0",
+    "zod": "^3.23.0",
+    "zod-to-json-schema": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

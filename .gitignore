@@ -6,6 +6,9 @@ dist/
 .DS_Store
 coverage/
 
+# Railway CLI local link state
+.railway/
+
 # Local-only knowledge stores (Cursor rules, running memory, Obsidian wiki)
 .cursor/
 .memory/
