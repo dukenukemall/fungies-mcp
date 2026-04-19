@@ -1,6 +1,6 @@
 {
-  "name": "@fungies/mcp-server",
-  "version": "0.2.0",
+  "name": "@fungiesio/mcp-server",
+  "version": "0.2.1",
   "description": "Official Model Context Protocol server for the Fungies Merchant of Record API",
   "keywords": [
     "fungies",
