@@ -442,7 +442,12 @@ Fungies MCP is built so your AI can be powerful without being dangerous.
 - **Read-only install option.** If you only need analytics, use the public key alone — 22 write tools simply never appear.
 - **Destructive confirm gate.** Archive / cancel / remove-key tools require the caller to pass `confirm: true`. Hosts that surface this to you (like Cursor's tool-call dialog) will ask before proceeding.
 - **Tool annotations.** Every tool advertises `readOnlyHint` / `destructiveHint` / `idempotentHint` so your AI can reason about risk before calling.
-- **Log redaction.** The server uses `pino` with strict redaction — your keys never show up in logs.
+- **Strict input validation.** Every tool input is a `.strict()` Zod object — unknown fields are rejected. All IDs must match `^[A-Za-z0-9_-]{1,64}$`, which blocks path traversal attacks against the upstream API.
+- **Origin allowlist.** Browser `Origin` headers are checked against an allowlist (app schemes like `cursor://`, `vscode://` always pass; arbitrary websites are blocked with 403 — defeats DNS rebinding / CSRF).
+- **Hard limits.** `/mcp` enforces a 256 KB body cap (413 `payload_too_large`) and a 300 req/min per-key rate limit (+ 120 req/min per IP on everything).
+- **Nonce-based CSP on `/install`.** `default-src 'none'` with per-request nonces — no third-party scripts, no inline exec, no framing.
+- **Log redaction + audit trail.** `pino` with strict redaction — your keys never show up in logs. Every write call records `{ tool, publicKey (masked), requestId }` with PII fields (email, billingDetails) replaced with `[REDACTED]`.
+- **HTTPS-only upstream.** In production the server refuses to start if `FUNGIES_API_BASE` isn't `https://`.
 - **Your data is yours.** The server never reads from or writes to a database; it is a pure passthrough to the Fungies API over TLS.
 - **Revocation is one click.** Delete the key pair from the Fungies dashboard and the MCP becomes inert immediately.
 
@@ -500,6 +505,10 @@ docker run -p 3000:3000 \
 | `MCP_PUBLIC_URL` | `https://mcp.fungies.io` | Baked into the `/install` page |
 | `FUNGIES_TIMEOUT_MS` | `15000` | Upstream request timeout |
 | `FUNGIES_MAX_RETRIES` | `2` | Retries for GET / PATCH / DELETE on 429 / 5xx |
+| `MCP_ALLOWED_ORIGINS` | `mcp.fungies.io,app.fungies.io,fungies.io` | Comma list of https hosts allowed via `Origin` header (app schemes like `cursor://`, `vscode://` are always allowed) |
+| `MCP_MAX_BODY_BYTES` | `262144` | Max JSON-RPC request size (256 KB) |
+| `RATE_LIMIT_IP_PER_MIN` | `120` | Per-IP request cap across the whole server |
+| `RATE_LIMIT_KEY_PER_MIN` | `300` | Per-public-key request cap on `/mcp` |
 
 The container runs as a non-root user, ships a health endpoint at `/healthz`, and exposes a clickable onboarding UI at `/install`.
 

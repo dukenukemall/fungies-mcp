@@ -16,7 +16,32 @@ declare module 'hono' {
   }
 }
 
+const ALLOWED_ORIGIN_SCHEMES = new Set(['cursor:', 'vscode:', 'vscode-webview:', 'codex:', 'zed:', 'windsurf:'])
+const ALLOWED_ORIGIN_HOSTS = new Set(
+  (process.env.MCP_ALLOWED_ORIGINS ?? 'mcp.fungies.io,app.fungies.io,fungies.io')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
+)
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin || origin === 'null') return true
+  let url: URL
+  try {
+    url = new URL(origin)
+  } catch {
+    return false
+  }
+  if (ALLOWED_ORIGIN_SCHEMES.has(url.protocol)) return true
+  if (url.protocol === 'https:' && ALLOWED_ORIGIN_HOSTS.has(url.hostname.toLowerCase())) return true
+  return false
+}
+
 export const keyAuth: MiddlewareHandler = async (c, next) => {
+  if (!isAllowedOrigin(c.req.header('origin'))) {
+    return c.json({ error: 'origin_not_allowed' }, 403)
+  }
+
   const pubRaw = c.req.header('x-fngs-public-key') ?? ''
   const pub = PublicKeySchema.safeParse(pubRaw)
   if (!pub.success) {
@@ -45,10 +70,6 @@ export const keyAuth: MiddlewareHandler = async (c, next) => {
     secretKey = sec.data
   }
 
-  c.set('auth', {
-    publicKey: pub.data,
-    secretKey,
-    hasSecret: Boolean(secretKey),
-  })
+  c.set('auth', { publicKey: pub.data, secretKey, hasSecret: Boolean(secretKey) })
   await next()
 }

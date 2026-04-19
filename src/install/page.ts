@@ -1,6 +1,6 @@
 const MCP_PUBLIC_URL = process.env.MCP_PUBLIC_URL ?? 'https://mcp.fungies.io'
 
-export function installPage(): string {
+export function installPage(nonce: string): string {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -8,7 +8,7 @@ export function installPage(): string {
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="robots" content="noindex"/>
 <title>Install Fungies MCP in Cursor</title>
-<style>
+<style nonce="${nonce}">
 :root { color-scheme: light dark; }
 *,*::before,*::after { box-sizing: border-box; }
 body { margin: 0; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: #0b0d10; color: #e7eaee; min-height: 100vh; display: grid; place-items: center; padding: 24px; }
@@ -35,7 +35,7 @@ pre.snippet { background:#0b0d10; border:1px solid #1f262f; border-radius:10px; 
 </head>
 <body>
   <main class="card">
-    <h1>Install Fungies MCP in Cursor <span class="badge">v0.1.0</span></h1>
+    <h1>Install Fungies MCP in Cursor <span class="badge">v0.2.0</span></h1>
     <p class="sub">Paste your Fungies API keys, then pick read-only or full access. Your keys stay in this browser &mdash; they are never sent to our server.</p>
 
     <label for="pub">Public key (required)</label>
@@ -53,7 +53,7 @@ pre.snippet { background:#0b0d10; border:1px solid #1f262f; border-radius:10px; 
 
     <pre class="snippet" id="snippet" hidden></pre>
   </main>
-<script>
+<script nonce="${nonce}">
 (function(){
   var PUB_RE = /^pub_[A-Za-z0-9_-]+$/;
   var SEC_RE = /^sec_[A-Za-z0-9_-]+$/;

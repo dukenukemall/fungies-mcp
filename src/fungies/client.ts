@@ -1,7 +1,17 @@
 import { extractList, handleResponse } from './extract.js'
+import { assertSafePath } from './ids.js'
 import type { PagedResult } from './types.js'
 
-export const FUNGIES_BASE_URL = `${process.env.FUNGIES_API_BASE ?? 'https://api.fungies.io'}/v0`
+function resolveBase(): string {
+  const raw = process.env.FUNGIES_API_BASE ?? 'https://api.fungies.io'
+  const u = new URL(raw)
+  if (u.protocol !== 'https:' && process.env.NODE_ENV === 'production') {
+    throw new Error(`FUNGIES_API_BASE must use https:// in production, got ${raw}`)
+  }
+  return `${raw.replace(/\/$/, '')}/v0`
+}
+
+export const FUNGIES_BASE_URL = resolveBase()
 const TIMEOUT_MS = Number(process.env.FUNGIES_TIMEOUT_MS ?? 15_000)
 const MAX_RETRIES = Number(process.env.FUNGIES_MAX_RETRIES ?? 2)
 const RETRYABLE = new Set([408, 425, 429, 500, 502, 503, 504])
@@ -22,6 +32,7 @@ export class FungiesClient {
   get hasSecret(): boolean { return Boolean(this.auth.secretKey) }
 
   async get<T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
+    assertSafePath(path)
     const url = new URL(`${FUNGIES_BASE_URL}${path}`)
     if (params) for (const [k, v] of Object.entries(params)) if (v !== undefined) url.searchParams.set(k, String(v))
     const res = await this.request(url.toString(), { method: 'GET', headers: this.readHeaders }, true)
@@ -37,6 +48,7 @@ export class FungiesClient {
   delete<T>(path: string, body?: unknown): Promise<T> { return this.write<T>(path, 'DELETE', body) }
 
   private async write<T>(path: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown): Promise<T> {
+    assertSafePath(path)
     const res = await this.request(
       `${FUNGIES_BASE_URL}${path}`,
       { method, headers: this.writeHeaders, body: body !== undefined ? JSON.stringify(body) : undefined },
