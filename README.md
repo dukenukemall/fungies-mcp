@@ -30,7 +30,7 @@
   - [Zed](#zed)
   - [Other MCP clients (stdio fallback)](#other-mcp-clients-stdio-fallback)
 - [Read-only vs full access](#read-only-vs-full-access)
-- [Full capabilities (41 tools)](#full-capabilities-41-tools)
+- [Full capabilities (40 tools)](#full-capabilities-40-tools)
 - [Example prompts](#example-prompts)
 - [Security & safety](#security--safety)
 - [Troubleshooting](#troubleshooting)
@@ -290,8 +290,8 @@ You choose the power level by which key you give the MCP.
 
 | Mode | Headers sent | Tools exposed | Good for |
 | --- | --- | --- | --- |
-| **Read-only** | `x-fngs-public-key` only | 19 (list/get/inventory/verify) | Analytics, reporting, exploration |
-| **Full access** | `x-fngs-public-key` **and** `x-fngs-secret-key` | 41 (adds create / update / archive / cancel / refund flows) | Day-to-day store management |
+| **Read-only** | `x-fngs-public-key` only | 18 (list/get/inventory/verify) | Analytics, reporting, exploration |
+| **Full access** | `x-fngs-public-key` **and** `x-fngs-secret-key` | 40 (adds create / update / archive / cancel / refund flows) | Day-to-day store management |
 
 You can install Fungies twice with different names — e.g. `fungies-read` and `fungies-write` — to keep destructive tools behind an explicit switch.
 
@@ -299,7 +299,7 @@ All destructive tools (`*_archive`, `*_cancel`, `offers_keys_remove`) additional
 
 ---
 
-## Full capabilities (41 tools)
+## Full capabilities (40 tools)
 
 All tools return structured JSON suitable for follow-up reasoning. Read-only tools are marked **R**, write tools **W**, destructive tools **D**.
 
@@ -387,12 +387,11 @@ All tools return structured JSON suitable for follow-up reasoning. Read-only too
 | `elements_list` | R | All embeddable checkout widgets in the store |
 | `elements_create` | W | Bind a set of offers into a reusable checkout element |
 
-### Webhooks — 2 tools
+### Webhooks — 1 tool
 
 | Tool | Type | What it does |
 | --- | --- | --- |
-| `webhooks_events` | R | Recent webhook delivery attempts (audit / debug) |
-| `webhooks_verify` | R | Verify a Fungies webhook signature locally (HMAC-SHA256, timing-safe; no network call) |
+| `webhooks_verify` | R | Verify a Fungies webhook signature locally (HMAC-SHA256, timing-safe; no network call). Fungies does not expose a webhook delivery log over the API — use the Fungies dashboard → Developers → Webhooks for delivery history. |
 
 ---
 

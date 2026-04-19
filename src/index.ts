@@ -31,7 +31,7 @@ app.use('*', compress())
 app.use('*', rateLimitByIp(Number(process.env.RATE_LIMIT_IP_PER_MIN ?? 120)))
 
 app.get('/', (c) => c.redirect('/install'))
-app.get('/healthz', (c) => c.json({ ok: true, service: 'fungies-mcp', version: '0.2.1' }))
+app.get('/healthz', (c) => c.json({ ok: true, service: 'fungies-mcp', version: '0.2.2' }))
 
 app.get('/install', (c) => {
   const nonce = randomBytes(16).toString('base64')
