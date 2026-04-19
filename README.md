@@ -14,20 +14,48 @@ Official [Model Context Protocol](https://modelcontextprotocol.io) server for th
 
 Lets MCP clients (Cursor, Claude Desktop, Continue, …) drive a Fungies store conversationally — list and create products, manage offers and game keys, look up orders and customers, manage subscriptions, generate discount codes, and more.
 
-## Status
+## Install in Cursor
 
-Scaffolding in progress. First release will be `mcp-v0.1.0`.
+Open [https://mcp.fungies.io/install](https://mcp.fungies.io/install), paste your Fungies keys, and click **Install in Cursor**. Keys stay in your browser.
 
-## Distribution (planned)
+Or add this to your `~/.cursor/mcp.json` manually:
 
-| Surface | How |
-|---|---|
-| Hosted | `https://mcp.fungies.io/sse` with `Authorization: Bearer pub_xxx:sec_xxx` |
-| Local | `npx -y @fungies/mcp-server` with `FUNGIES_PUBLIC_KEY` / `FUNGIES_SECRET_KEY` env vars |
+```json
+{
+  "mcpServers": {
+    "fungies": {
+      "url": "https://mcp.fungies.io/mcp",
+      "headers": {
+        "x-fngs-public-key": "pub_...",
+        "x-fngs-secret-key": "sec_..."
+      }
+    }
+  }
+}
+```
+
+Omit `x-fngs-secret-key` for read-only access (19 tools). With a secret key 22 additional write tools are exposed (41 total).
+
+## Auth
+
+Keys are sent on every MCP request as HTTP headers and forwarded verbatim to `api.fungies.io/v0`. The server never stores them. Generate keys at [app.fungies.io/devs/api-keys](https://app.fungies.io/devs/api-keys).
+
+## Tools
+
+Tools are grouped by resource: `products_*`, `offers_*`, `orders_*`, `subscriptions_*`, `users_*`, `discounts_*`, `payments_*`, `elements_*`, `webhooks_*`. Destructive tools (`*_archive`, `*_cancel`, `offers_keys_remove`) require `confirm: true`.
+
+## Self-host
+
+```bash
+docker build -t fungies-mcp .
+docker run -e PORT=3000 -p 3000:3000 fungies-mcp
+```
+
+Env vars: `PORT`, `NODE_ENV`, `LOG_LEVEL`, `FUNGIES_API_BASE` (default `https://api.fungies.io`), `MCP_PUBLIC_URL` (default `https://mcp.fungies.io`).
 
 ## Sister project
 
-[`dukenukemall/fungies-cli`](https://github.com/dukenukemall/fungies-cli) — same API surface, different transport (terminal). The MCP server reuses its API client patterns.
+[`dukenukemall/fungies-cli`](https://github.com/dukenukemall/fungies-cli) — same API surface, different transport (terminal). The MCP server reuses its API client.
 
 ## License
 
