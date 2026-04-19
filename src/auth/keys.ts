@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import type { MiddlewareHandler } from 'hono'
 
-export const PublicKeySchema = z.string().regex(/^pub_[A-Za-z0-9_-]+$/)
-export const SecretKeySchema = z.string().regex(/^sec_[A-Za-z0-9_-]+$/)
+export const PublicKeySchema = z.string().regex(/^pub_[A-Za-z0-9+/_=-]+$/)
+export const SecretKeySchema = z.string().regex(/^sec_[A-Za-z0-9+/_=-]+$/)
 
 export interface AuthContext {
   publicKey: string
