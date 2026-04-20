@@ -1,4 +1,4 @@
-const VERSION = '0.2.3'
+const VERSION = '0.2.4'
 
 const PUBLIC_URL = process.env.MCP_PUBLIC_URL ?? 'https://mcp.fungies.io'
 
@@ -72,6 +72,7 @@ export function buildMcpManifest() {
       docs: 'https://docs.fungies.io/api-reference/introduction',
       install: `${PUBLIC_URL}/install`,
       health: `${PUBLIC_URL}/healthz`,
+      agentSkills: `${PUBLIC_URL}/.well-known/agent-skills/index.json`,
       repository: 'https://github.com/dukenukemall/fungies-mcp',
       issues: 'https://github.com/dukenukemall/fungies-mcp/issues',
       support: 'https://help.fungies.io',

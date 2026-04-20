@@ -35,7 +35,7 @@ pre.snippet { background:#0b0d10; border:1px solid #1f262f; border-radius:10px; 
 </head>
 <body>
   <main class="card">
-    <h1>Install Fungies MCP in Cursor <span class="badge">v0.2.3</span></h1>
+    <h1>Install Fungies MCP in Cursor <span class="badge">v0.2.4</span></h1>
     <p class="sub">Paste your Fungies API keys, then pick read-only or full access. Your keys stay in this browser &mdash; they are never sent to our server.</p>
 
     <label for="pub">Public key (required)</label>

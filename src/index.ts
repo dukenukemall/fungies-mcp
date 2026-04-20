@@ -12,6 +12,7 @@ import { logger } from './lib/logger.js'
 import { httpLog } from './lib/httpLog.js'
 import { rateLimitByIp, rateLimitByKey } from './lib/rateLimit.js'
 import { buildMcpManifest } from './manifest/mcpManifest.js'
+import { buildAgentSkillsIndex, FUNGIES_MCP_SKILL_MD, FUNGIES_MCP_SKILL_NAME } from './skills/agentSkillsIndex.js'
 
 const MAX_MCP_BODY_BYTES = Number(process.env.MCP_MAX_BODY_BYTES ?? 256 * 1024)
 
@@ -32,12 +33,25 @@ app.use('*', compress())
 app.use('*', rateLimitByIp(Number(process.env.RATE_LIMIT_IP_PER_MIN ?? 120)))
 
 app.get('/', (c) => c.redirect('/install'))
-app.get('/healthz', (c) => c.json({ ok: true, service: 'fungies-mcp', version: '0.2.3' }))
+app.get('/healthz', (c) => c.json({ ok: true, service: 'fungies-mcp', version: '0.2.4' }))
 
 app.get('/.well-known/mcp.json', (c) => {
   c.header('Cache-Control', 'public, max-age=300')
   c.header('Access-Control-Allow-Origin', '*')
   return c.json(buildMcpManifest())
+})
+
+app.get('/.well-known/agent-skills/index.json', (c) => {
+  c.header('Cache-Control', 'public, max-age=300')
+  c.header('Access-Control-Allow-Origin', '*')
+  return c.json(buildAgentSkillsIndex())
+})
+
+app.get(`/.well-known/agent-skills/${FUNGIES_MCP_SKILL_NAME}/SKILL.md`, (c) => {
+  c.header('Content-Type', 'text/markdown; charset=utf-8')
+  c.header('Cache-Control', 'public, max-age=300')
+  c.header('Access-Control-Allow-Origin', '*')
+  return c.body(FUNGIES_MCP_SKILL_MD)
 })
 
 app.get('/install', (c) => {
