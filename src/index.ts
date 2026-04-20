@@ -11,6 +11,7 @@ import { installPage } from './install/page.js'
 import { logger } from './lib/logger.js'
 import { httpLog } from './lib/httpLog.js'
 import { rateLimitByIp, rateLimitByKey } from './lib/rateLimit.js'
+import { buildMcpManifest } from './manifest/mcpManifest.js'
 
 const MAX_MCP_BODY_BYTES = Number(process.env.MCP_MAX_BODY_BYTES ?? 256 * 1024)
 
@@ -31,7 +32,13 @@ app.use('*', compress())
 app.use('*', rateLimitByIp(Number(process.env.RATE_LIMIT_IP_PER_MIN ?? 120)))
 
 app.get('/', (c) => c.redirect('/install'))
-app.get('/healthz', (c) => c.json({ ok: true, service: 'fungies-mcp', version: '0.2.2' }))
+app.get('/healthz', (c) => c.json({ ok: true, service: 'fungies-mcp', version: '0.2.3' }))
+
+app.get('/.well-known/mcp.json', (c) => {
+  c.header('Cache-Control', 'public, max-age=300')
+  c.header('Access-Control-Allow-Origin', '*')
+  return c.json(buildMcpManifest())
+})
 
 app.get('/install', (c) => {
   const nonce = randomBytes(16).toString('base64')

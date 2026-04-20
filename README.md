@@ -125,7 +125,7 @@ Visit [mcp.fungies.io/install](https://mcp.fungies.io/install), paste your keys,
 
 3. Restart Cursor. Open the Agent panel — you should see **"fungies"** in the tool list.
 
-Omit `x-fngs-secret-key` for read-only mode (19 tools, no risk of accidental changes).
+Omit `x-fngs-secret-key` for read-only mode (17 tools, no risk of accidental changes).
 
 ### Claude Desktop
 
@@ -290,7 +290,7 @@ You choose the power level by which key you give the MCP.
 
 | Mode | Headers sent | Tools exposed | Good for |
 | --- | --- | --- | --- |
-| **Read-only** | `x-fngs-public-key` only | 18 (list/get/inventory/verify) | Analytics, reporting, exploration |
+| **Read-only** | `x-fngs-public-key` only | 17 (list/get/inventory/verify) | Analytics, reporting, exploration |
 | **Full access** | `x-fngs-public-key` **and** `x-fngs-secret-key` | 40 (adds create / update / archive / cancel / refund flows) | Day-to-day store management |
 
 You can install Fungies twice with different names — e.g. `fungies-read` and `fungies-write` — to keep destructive tools behind an explicit switch.
@@ -438,7 +438,7 @@ Paste any of these into your AI chat once the MCP is installed.
 Fungies MCP is built so your AI can be powerful without being dangerous.
 
 - **No credential storage.** Keys live only in your AI tool's local config. Every request forwards them to `api.fungies.io` and the server forgets them.
-- **Read-only install option.** If you only need analytics, use the public key alone — 22 write tools simply never appear.
+- **Read-only install option.** If you only need analytics, use the public key alone — 23 write / destructive tools simply never appear.
 - **Destructive confirm gate.** Archive / cancel / remove-key tools require the caller to pass `confirm: true`. Hosts that surface this to you (like Cursor's tool-call dialog) will ask before proceeding.
 - **Tool annotations.** Every tool advertises `readOnlyHint` / `destructiveHint` / `idempotentHint` so your AI can reason about risk before calling.
 - **Strict input validation.** Every tool input is a `.strict()` Zod object — unknown fields are rejected. All IDs must match `^[A-Za-z0-9_-]{1,64}$`, which blocks path traversal attacks against the upstream API.
